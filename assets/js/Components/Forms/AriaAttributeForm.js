@@ -132,13 +132,18 @@ export default function AriaAttributeForm(
             </ul>
             </label>
             {requiredAttributes.map((opt, index) => (
+              <label for="attribute"> {opt}:
               <input
+                id="attribute"
+                style={{marginLeft:'15px', marginBottom: '10px', width:'200px'}}
+                name="attribute"
                 key={index}
                 type="text"
                 rule={opt}
                 defaultValue={element.getAttribute(opt) || ""}
                 onChange={(e) => {handleInput(e, opt)}}
               />
+              </label>
             ))}
             </section>
         )}
