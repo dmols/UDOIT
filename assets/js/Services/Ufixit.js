@@ -13,6 +13,7 @@ import QuoteForm from '../Components/Forms/QuoteForm'
 import EmbeddedContentTitleForm from '../Components/Forms/EmbeddedContentTitleForm'
 import SensoryMisuseForm from '../Components/Forms/SensoryMisuseForm'
 import AriaRoleForm from '../Components/Forms/AriaRoleForm'
+import AriaAttributeForm from '../Components/Forms/AriaAttributeForm'
 
 const UfixitForms = {
   // phpAlly rules
@@ -65,6 +66,7 @@ const UfixitForms = {
   // text_quoted_correctly: QuoteForm,
   text_sensory_misuse: SensoryMisuseForm,
   a_text_purpose: AnchorText,
+  aria_attribute_required: AriaAttributeForm,
 }
 
 export function returnIssueForm(activeIssue) {
