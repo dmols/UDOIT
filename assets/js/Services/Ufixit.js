@@ -12,6 +12,7 @@ import QuoteForm from '../Components/Forms/QuoteForm'
 import SensoryMisuseForm from '../Components/Forms/SensoryMisuseForm'
 import TableHeaders from '../Components/Forms/TableHeaders'
 import Video from '../Components/Forms/Video'
+import AriaAttributeForm from '../Components/Forms/AriaAttributeForm'
 
 import UfixitReviewOnly from '../Components/Forms/UfixitReviewOnly'
 
@@ -52,7 +53,6 @@ const formTypes = {
   [formNames.SENSORY_MISUSE]: SensoryMisuseForm,
   [formNames.TABLE_HEADERS]: TableHeaders,
   [formNames.VIDEO]: Video,
-
   [formNames.REVIEW_ONLY]: UfixitReviewOnly,
 }
 
@@ -129,6 +129,8 @@ const rulesToFormNameMap = {
 
   // caption_track_exists: formNames.VIDEO,
   // media_audio_transcribed: formNames.VIDEO,
+
+  aria_attribute_required: AriaAttributeForm,
 }
 
 export function formFromIssue(activeIssue) {
