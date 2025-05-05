@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import * as Html from "../../Services/Html";
+import FormFeedback from './FormFeedback';
 import './AriaRoleForm.css'
 
 export default function AriaAttributeForm(
@@ -51,11 +52,52 @@ export default function AriaAttributeForm(
   const [textInputValue, setTextInputValue] = useState(
     element ? Html.getAttribute(element, "role") : ""
   );
-  const [textInputErrors, setTextInputErrors] = useState([]);
+
+  const checkMin = (min, current, max, tempErrors) => {
+    console.log("min is " + min);
+    if (min != "" && max != "") {
+      if(min > max){
+        tempErrors.push({ text: t('form.aria_attribute.feedback.min_greater_than_max'), type: "error" });
+      }
+    }
+
+    setFormErrors(tempErrors);
+  }
+
+  const checkCurrent = (min, current, max, tempErrors) => {
+    if(current < min || current > max){
+      tempErrors.push({ text: t('form.aria_attribute.feedback.current_value_invalid'), type: "error" });
+    }
+
+  }
+
+  const checkControls = (controls, tempErrors) => {
+    // should be controlling a valid element ID but not sure
+  }
+
+  const checkFormErrors = (attributesArray) => {
+    console.log("here");
+    let tempErrors = [];
+    // console.log("attributesArray:" + attributesArray);
+    let min = attributesArray['aria-valuemin'];
+    // console.log("min is " + min);
+    let max = attributesArray['aria-valuemax'];
+    let current = attributesArray['aria-valuenow'];
+    let controls = attributesArray['aria-controls'];
+
+    tempErrors = checkMin(min, current, max, tempErrors);
+    // tempErrors = checkMax(min, current, max, tempErrors);
+    tempErrors = checkCurrent(min, current, max, tempErrors);
+    tempErrors = checkControls(controls, tempErrors);
+
+    setFormErrors(tempErrors);
+
+  }
 
   useEffect(() => {
-    console.log(attributesArray)
-    // CHECK FORM ERRORS USING THIS GUY
+    // console.log(attributesArray);
+    console.log('attributesArray changed:', attributesArray);
+    checkFormErrors(attributesArray);
   }, [attributesArray]);
 
   useEffect(() => {
@@ -98,14 +140,12 @@ export default function AriaAttributeForm(
     handleActiveIssue(issue);
   };
 
-  const handleButton = () => {
-    handleIssueSave(activeIssue);
-  };
+  const handleSubmit = () => {
+    handleIssueSave(activeIssue)
+  }
 
   const handleInput = (e, attribute) => {
     console.log(e)
-    // console.log(e.target.key)
-    // console.log(e.target.value)
     let element = Html.toElement(html);
 
     let tempAttributesArray = {...attributesArray};
@@ -114,46 +154,40 @@ export default function AriaAttributeForm(
 
     element.setAttribute(attribute, e.target.value);
     handleHtmlUpdate(element);
-    // console.log(element)
   };
 
   return (
-    <div className="p-1">
-      <section>
-        {requiredAttributes.length === 0 ? (
-          <p>No valid ARIA attributes for &lt;{detectedTag}&gt;</p>
-        ) : (<section className="flex-col">
-          <label>
-            Required attributes for {detectedTag} role:
-            <ul>
-              {requiredAttributes.map((opt, index) => (
-                <li key={index}>{opt}</li>
-              ))}
-            </ul>
-            </label>
-            {requiredAttributes.map((opt, index) => (
-              <label for="attribute"> {opt}:
-              <input
-                id="attribute"
-                style={{marginLeft:'15px', marginBottom: '10px', width:'200px'}}
-                name="attribute"
-                key={index}
-                type="text"
-                rule={opt}
-                defaultValue={element.getAttribute(opt) || ""}
-                onChange={(e) => {handleInput(e, opt)}}
-              />
-              </label>
-            ))}
-            </section>
-        )}
-      </section>
-
-      <section className="mt-3">
-        <button className="btn btn-primary" onClick={handleButton} disabled={formErrors.length > 0}>
-          {t('form.submit')}
-        </button>
-      </section>
-    </div>
+    <>
+        <p>No valid ARIA attributes for {detectedTag} role.</p>
+        <p>
+          Required attributes for {detectedTag} role:
+        </p>
+        <ul>
+          {requiredAttributes.map((opt, index) => (
+            <li key={index}>{opt}</li>
+          ))}
+        </ul>
+        {requiredAttributes.map((opt, index) => (
+          <>
+          <label for="attribute"> {opt}:</label>
+          <div className="w-100 mt-2">
+            <input
+              id="attribute"
+              style={{ marginLeft: '15px', marginBottom: '10px', width: '200px' }}
+              name="attribute"
+              key={index}
+              type="text"
+              rule={opt}
+              defaultValue={element.getAttribute(opt) || ""}
+              onChange={(e) => { handleInput(e, opt); } }
+            />
+            </div>
+          </>
+        ))}
+        {/* <FormFeedback issues={formErrors} /> */}
+      <div className="flex-row justify-content-start mt-3 mb-3">
+        <button className="btn btn-primary" onClick={handleSubmit}>{t('form.submit')}</button>
+      </div>
+    </>
   );
 }

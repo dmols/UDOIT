@@ -21,6 +21,7 @@ const formNames = {
   ALT_TEXT: 'alt_text',
   ANCHOR_TEXT: 'anchor_text',
   ARIA_ROLE: 'aria_role',
+  ARIA_ATTRIBUTE: 'aria_attribute',
   CONTRAST: 'contrast',
   EMBEDDED_CONTENT_TITLE: 'embedded_content_title',
   EMPHASIS: 'emphasis',
@@ -40,6 +41,7 @@ const formNames = {
 const formTypes = {
   [formNames.ALT_TEXT]: AltText,
   [formNames.ANCHOR_TEXT]: AnchorText,
+  [formNames.ARIA_ATTRIBUTE]: AriaAttributeForm,
   [formNames.ARIA_ROLE]: AriaRoleForm,
   [formNames.CONTRAST]: ContrastForm,
   [formNames.EMBEDDED_CONTENT_TITLE]: EmbeddedContentTitleForm,
@@ -130,7 +132,7 @@ const rulesToFormNameMap = {
   // caption_track_exists: formNames.VIDEO,
   // media_audio_transcribed: formNames.VIDEO,
 
-  aria_attribute_required: AriaAttributeForm,
+  aria_attribute_required: formNames.ARIA_ATTRIBUTE,
 }
 
 export function formFromIssue(activeIssue) {
