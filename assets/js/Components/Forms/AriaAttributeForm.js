@@ -24,7 +24,7 @@ export default function AriaAttributeForm(
     checkbox: ["aria-checked"],
     scrollbar: ["aria-valuemin", "aria-valuemax", "aria-valuenow", "aria-controls"],
     slider: ["aria-valuemin", "aria-valuemax", "aria-valuenow"],
-    spinbutton: ["aria-valuenow"],
+    spinbutton: ["aria-valuenow"], // doesn't seem to need a check since there's no aria-valuemin or aria-valuemax
     switch: ["aria-checked"],
     tooltip: ["aria-describedby"],
     combobox: ["aria-autocomplete", "aria-expanded", "aria-controls"],
@@ -39,6 +39,7 @@ export default function AriaAttributeForm(
   const [formErrors, setFormErrors] = useState([]);
   const [requiredAttributes, setRequiredAttributes] = useState([]);
   const [attributesArray, setAttributesArray] = useState([]);
+  const [formComplete, setFormComplete] = useState();
 
   let html = activeIssue.newHtml
     ? activeIssue.newHtml
@@ -53,49 +54,76 @@ export default function AriaAttributeForm(
     element ? Html.getAttribute(element, "role") : ""
   );
 
-  const checkMin = (min, current, max, tempErrors) => {
-    console.log("min is " + min);
-    if (min != "" && max != "") {
-      if(min > max){
-        tempErrors.push({ text: t('form.aria_attribute.feedback.min_greater_than_max'), type: "error" });
-      }
-    }
-
-    setFormErrors(tempErrors);
-  }
-
-  const checkCurrent = (min, current, max, tempErrors) => {
-    if(current < min || current > max){
-      tempErrors.push({ text: t('form.aria_attribute.feedback.current_value_invalid'), type: "error" });
-    }
-
-  }
-
-  const checkControls = (controls, tempErrors) => {
-    // should be controlling a valid element ID but not sure
-  }
-
-  const checkFormErrors = (attributesArray) => {
-    console.log("here");
+  const checkMultivalueRole = () => {
     let tempErrors = [];
-    // console.log("attributesArray:" + attributesArray);
     let min = attributesArray['aria-valuemin'];
-    // console.log("min is " + min);
     let max = attributesArray['aria-valuemax'];
     let current = attributesArray['aria-valuenow'];
     let controls = attributesArray['aria-controls'];
+    let autocompleteValue = attributesArray['aria-autocomplete'];
+    let autocompleteValidKeyword = ["none", "list", "inline", "both"];
+    let expanded = attributesArray['aria-expanded'];
 
-    tempErrors = checkMin(min, current, max, tempErrors);
-    // tempErrors = checkMax(min, current, max, tempErrors);
-    tempErrors = checkCurrent(min, current, max, tempErrors);
-    tempErrors = checkControls(controls, tempErrors);
+
+    // checking min value checks. first check ensures we're not comparing empty strings
+    if (min && max) {
+      if(min > max){
+        console.log("Im here where min is greater than max");
+        tempErrors.push({ text: t('form.aria_attribute.feedback.min'), type: "error" });
+      }
+    }
+
+    // current has to not be empty and also within the confines of min and max
+    if(current && (current < min || current > max))
+      tempErrors.push({ text: t('form.aria_attribute.feedback.current'), type: "error" });
+
+    if(autocompleteValue && (!autocompleteValidKeyword.includes(autocompleteValue)))
+      tempErrors.push({ text: t('form.aria_attribute.feedback.autocomplete.invalid'), type: "error" });
+
+    if(expanded && (expanded != "true" && expanded != "false"))
+      tempErrors.push({ text: t('form.aria_attribute.feedback.expanded.invalid'), type: "error" });
+
+    return tempErrors;
+  }
+
+  const checkFormErrors = (attributesArray) => {
+    let tempErrors = [];
+
+    if (attributesArray.hasOwnProperty("aria-valuemin") || attributesArray.hasOwnProperty("aria-autocomplete")){
+      tempErrors = checkMultivalueRole();
+    }
+    else if (attributesArray.hasOwnProperty("aria-checked")) {
+      if (attributesArray["aria-checked"] && attributesArray["aria-checked"] != "true" && attributesArray["aria-checked"] != "false") {
+        tempErrors.push({ text: t("form.aria_attribute.feedback.aria-checked.invalid"), type: "error" });
+      }
+    }
+    else if (attributesArray.hasOwnProperty("aria-level")) {
+      if (attributesArray["aria-level"] && (attributesArray["aria-level"] < 1 || isNaN(attributesArray["aria-level"]))) {
+        tempErrors.push({ text: t("form.aria_attribute.feedback.aria-level.invalid"), type: "error" });
+      }
+    }
+    else if (attributesArray.hasOwnProperty("aria-valuenow")) {
+      if (attributesArray["aria-valuenow"] && isNaN(attributesArray["aria-valuenow"])) {
+        tempErrors.push({ text: t("form.aria_attribute.feedback.aria-valuenow.invalid"), type: "error" });
+      }
+    }
+    else {
+      if (attributesArray["aria-selected"] && attributesArray["aria-selected"] != "true" && attributesArray["aria-selected"] != "false") {
+        tempErrors.push({ text: t("form.aria_attribute.feedback.aria-checked.invalid"), type: "error" });
+      }
+    }
+
+    // check if we input all the fields
+    let hasEmptyValue = Object.values(attributesArray).includes("");
+
+    if(!hasEmptyValue)
+      setFormComplete(true)
 
     setFormErrors(tempErrors);
 
   }
 
   useEffect(() => {
-    // console.log(attributesArray);
     console.log('attributesArray changed:', attributesArray);
     checkFormErrors(attributesArray);
   }, [attributesArray]);
@@ -107,6 +135,8 @@ export default function AriaAttributeForm(
     if (activeIssue.status === 1) {
       html = activeIssue.newHtml;
     }
+
+    setFormComplete(false);
 
     let element = Html.toElement(html);
     setTextInputValue(element ? Html.getAttribute(element, "role") : "");
@@ -158,9 +188,9 @@ export default function AriaAttributeForm(
 
   return (
     <>
-        <p>No valid ARIA attributes for {detectedTag} role.</p>
+        <p>Missing valid ARIA attributes for <b>{detectedTag}</b> role.</p>
         <p>
-          Required attributes for {detectedTag} role:
+          The required attributes for <b>{detectedTag}</b> role are listed below.
         </p>
         <ul>
           {requiredAttributes.map((opt, index) => (
@@ -184,9 +214,9 @@ export default function AriaAttributeForm(
             </div>
           </>
         ))}
-        {/* <FormFeedback issues={formErrors} /> */}
+        <FormFeedback issues={formErrors} />
       <div className="flex-row justify-content-start mt-3 mb-3">
-        <button className="btn btn-primary" onClick={handleSubmit}>{t('form.submit')}</button>
+        <button className="btn btn-primary" disabled={!formComplete || formErrors.length > 0} onClick={handleSubmit}>{t('form.submit')}</button>
       </div>
     </>
   );

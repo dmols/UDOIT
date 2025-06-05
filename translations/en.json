@@ -183,12 +183,13 @@
   "table.prev_page": "Previous page",
   "table.next_page": "Next page",
   "content_page.issues.table.caption": "Table of issues found",
-  
+
   "form.error.fails_tests": "Submission fails tests.",
   "form.error.same_html": "These changes have already been submitted",
 
   "form.alt_text.title": "Images Should Have Alternative Text",
   "form.anchor_text.title": "Links Should Contain Descriptive Text",
+  "form.aria_attribute.title": "Element with ARIA Role is Missing Required Attributes",
   "form.aria_role.title": "HTML Element has an Invalid ARIA Role",
   "form.contrast.title": "Text Must Have Sufficient Color Contrast with the Background",
   "form.embedded_content_title.title": "Embedded Content Should Have a Label",
@@ -256,13 +257,21 @@
   "form.anchor.delete_link": "Delete this link completely instead",
   "form.anchor.msg.text_descriptive": "This text is not descriptive",
   "form.anchor.msg.text_empty": "Link text cannot be empty",
- 
+
   "form.aria_role.feedback.no_tag": "The HTML tag could not be computed.",
   "form.aria_role.feedback.no_roles": "No valid ARIA roles for <{tagName}>",
   "form.aria_role.label.select": "Select a Valid ARIA Role",
   "form.aria_role.label.none_selected": "No ARIA Role Selected",
   "form.aria_role.label.remove": "Remove ARIA Role",
- 
+
+  "form.aria_attribute.feedback.min": "Min value cannot be greater than max value",
+  "form.aria_attribute.feedback.current": "Current value must be between min and max values, inclusive ",
+  "form.aria_attribute.feedback.aria-checked.invalid": "The value of aria-checked should be either a 'true' or 'false' ",
+  "form.aria_attribute.feedback.aria-level.invalid": "aria-level should be a number greater than or equal to 1",
+  "form.aria_attribute.feedback.aria-valuenow.invalid": "aria-valuenow should be a number",
+  "form.aria_attribute.feedback.expanded.invalid": "The value of aria-expanded should be either 'true' or 'false'",
+  "form.aria_attribute.feedback.autocomplete.invalid": "The value of aria-autocomplete should be either 'none', 'inline', 'list', or 'both'",
+
   "form.contrast.label.darken": "Darken",
   "form.contrast.label.lighten": "Lighten",
   "form.contrast.label.bolden_text": "Make Text Bold",
