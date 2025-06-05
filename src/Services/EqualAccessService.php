@@ -5,6 +5,7 @@ namespace App\Services;
 use CidiLabs\PhpAlly\PhpAllyIssue;
 use CidiLabs\PhpAlly\PhpAllyReport;
 
+use App\Entity\Issue;
 use App\Entity\ContentItem;
 
 use DOMDocument;
@@ -35,6 +36,7 @@ class EqualAccessService {
         "style_viewport_resizable",
         "aria_accessiblename_exists",
         "aria_content_in_landmark", 
+        "aria_landmark_name_unique",
         "a_target_warning",
     );
 
@@ -70,42 +72,45 @@ class EqualAccessService {
         return $htmlSnippet;
     }
 
-    public function checkforIgnoreClass($htmlSnippet) {
-        // Assume no phpAllyIgnore by default
-        $phpAllyIgnore = false;
+    public function checkforIgnoreClass($htmlSnippet, $equalAccessRule) {
+
+        $errorIsReviewed = false;
 
         if ($htmlSnippet) {
             $classes = $htmlSnippet->getAttribute("class");
 
-            if (strlen($classes) > 0 && str_contains($classes, "phpally-ignore")) {
-                $phpAllyIgnore = true;
+            if (strlen($classes) > 0) {
+              $specificRule = "udoit-ignore-" . str_replace("_", "-", $equalAccessRule);
+               if(str_contains($classes, "phpally-ignore") || str_contains($classes, $specificRule)) {
+                // If the class phpally-ignore OR udoit-ignore-{ruleId} is found, ignore this issue
+                $errorIsReviewed = true;
+               }
             } 
         }
 
-        return $phpAllyIgnore;
+        return $errorIsReviewed;
     }
 
     // Generate a UDOIT-style JSON report from the output of Equal Access
-    public function generateReport($json, $document) {
-        // $this->logToServer("Generating report in EqualAccessService!");
+    public function generateReport($json) {
+
         $report = new PhpAllyReport();
-        $xpath = new DOMXPath($document);
+        // $xpath = new DOMXPath($document);
 
         $issues = array();
         $issueCounts = array();
 
-        // $this->logToServer(json_encode($json["results"]));
         foreach ($json["results"] as $results) {
             $equalAccessRule = $results["ruleId"];
 
             // $this->logToServer($equalAccessRule);
             $xpathQuery = $results["path"]["dom"];
             // $this->logToServer($xpathQuery);
-            $issueHtml = $this->xpathToSnippet($xpath, $xpathQuery);
+            // $issueHtml = $this->xpathToSnippet($xpath, $xpathQuery);
             $metadata = null;
 
             // First check if the HTML has phpally-ignore and also check if the rule isn't one we skip.
-            if (!$this->checkForIgnoreClass($issueHtml) && !in_array($equalAccessRule, $this->skipRules)) {
+            if (!in_array($equalAccessRule, $this->skipRules)) {
                 // Populate the issue counts field with how many total issues
                 // with the specific rule are found
                 if (array_key_exists($equalAccessRule, $issueCounts)) {
@@ -115,29 +120,20 @@ class EqualAccessService {
                     $issueCounts[$equalAccessRule] = 1;
                 }
 
-                // Check for specific rules (mostly about contrast)
-                // so we can add CSS metadata to database
-                // TODO: check if these elements exist? 
-                // equal access may just always have these available for each rule however
                 $reasonId = $results["reasonId"];
                 $message = $results["message"];
                 $messageArgs = $results["messageArgs"];
                 $value = $results["value"];
 
                 $metadata = $this->createMetadata($reasonId, $message, $messageArgs, $value);
-
-                // Check for null (aka no XPath result was found) and skip.
-                // Otherwise, create a new issue with the HTML from the XPath query.
-                if ($issueHtml) {
-                    // UDOIT database has 'html' and 'preview_html',
-                    // where 'preview_html' is the parent of the offending html
-                    $parentIssueHtml = $issueHtml->parentNode;
-                }  
-                else {
-                    continue;
-                }
                 
-                $issue = new PhpAllyIssue($equalAccessRule, $issueHtml, $parentIssueHtml, $metadata);
+                // $issue = new PhpAllyIssue($equalAccessRule, $issueHtml, $parentIssueHtml, $metadata);
+                $issue = (object) [
+                  'isGeneric' => true,
+                  'scanRuleId' => $equalAccessRule,
+                  'xpath' => $xpathQuery,
+                  'metadata' => $metadata,
+                ];
                 $report->setIssueCounts($equalAccessRule, $issueCounts[$equalAccessRule], -1);
                 array_push($issues, $issue);
                 $report->setErrors([]);
@@ -217,10 +213,10 @@ class EqualAccessService {
         $envTextColor = $_ENV['TEXT_COLOR'];
 
         if (strpos($html, '<?xml encoding="utf-8"') !== false) {
-            $dom->loadHTML("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Placeholder Page Title</title></head><body><div role=\"main\"><h1>Placeholder Page Title</h1>{$html}</div></body></html>", LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+            $dom->loadHTML("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Placeholder Page Title</title></head><body><main>{$html}</main></body></html>", LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 
         } else {
-            $dom->loadHTML("<?xml encoding=\"utf-8\" ?><!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Placeholder Page Title</title></head><body><div role=\"main\"><h1>Placeholder Page Title</h1>{$html}</div></body></html>", LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+            $dom->loadHTML("<?xml encoding=\"utf-8\" ?><!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Placeholder Page Title</title></head><body><main>{$html}</main></body></html>", LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
         }
 
         return $dom;

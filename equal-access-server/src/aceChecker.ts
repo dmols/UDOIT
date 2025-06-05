@@ -19,16 +19,15 @@ class PagePool {
 
   async getPage(): Promise<{page: puppeteer.Page, hasScript: boolean}> {
     const availablePage = this.pages.find(p => !p.inUse);
-    
+
     if (availablePage) {
       availablePage.inUse = true;
       return { page: availablePage.page, hasScript: availablePage.hasScript };
     }
 
     if (this.pages.length < this.maxSize) {
-      console.time('new-pooled-page');
       const page = await this.browser.newPage();
-      
+
       await page.setRequestInterception(true);
       page.on('request', (request) => {
         if (['image', 'stylesheet', 'font', 'media'].includes(request.resourceType())) {
@@ -37,13 +36,13 @@ class PagePool {
           request.continue();
         }
       });
-      console.timeEnd('new-pooled-page');
-      
+
       const pageEntry = { page, inUse: true, hasScript: false };
       this.pages.push(pageEntry);
       return { page, hasScript: false };
     }
 
+    // Check if a page is available every 100ms
     return new Promise((resolve) => {
       const checkInterval = setInterval(() => {
         const availablePage = this.pages.find(p => !p.inUse);
@@ -89,43 +88,78 @@ export async function closePagePool(): Promise<void> {
   }
 }
 
-export async function aceCheck(html: string, browser: puppeteer.Browser, guidelineIds?: string | string[]): Promise<Report> {
-  console.time('total-execution');
-  
+// reportLevels can be:
+//     - violation
+//     - potentialviolation
+//     - recommendation
+//     - potentialrecommendation
+//     - manual
+//     - pass
+export async function aceCheck(html: string, browser: puppeteer.Browser, guidelineIds?: string | string[], reportLevels?: string | string[]): Promise<Report> {
+
   if (!pagePool) {
     pagePool = new PagePool(browser);
   }
-  
-  console.time('get-page-from-pool');
+
   const { page, hasScript } = await pagePool.getPage();
-  console.timeEnd('get-page-from-pool');
-  
+
   let scriptAdded = false;
-  
+
   try {
-    console.time('set-content');
     await page.setContent(html, { waitUntil: 'domcontentloaded' });
-    console.timeEnd('set-content');
-    
+
     let scriptAdded = hasScript;
     if (!hasScript) {
-      console.time('add-script-tag');
       await page.addScriptTag({
         path: require.resolve(acePath)
       });
       scriptAdded = true;
-      console.timeEnd('add-script-tag');
     }
-    
-    console.time('evaluate-check');
+
     const report = await page.evaluate(async (ids) => {
       const checker = new ace.Checker();
       return await checker.check(document, ids);
     }, guidelineIds);
-    console.timeEnd('evaluate-check');
-    
-    console.timeEnd('total-execution');
-    report.results = report.results.filter((result: Issue) => result.value[1] !== "PASS");
+
+    // validate and process reportLevels
+    if (!reportLevels) {
+      throw new Error('reportLevels must be provided as a string or string array');
+    }
+    const levels = Array.isArray(reportLevels) ? reportLevels : [reportLevels];
+    // build a set of valid combos
+    const combos = new Set<string>();
+    for (const level of levels) {
+      switch (level) {
+        case "violation":
+          combos.add("VIOLATION|FAIL");
+          break;
+        case "potentialviolation":
+          combos.add("VIOLATION|POTENTIAL");
+          break;
+        case "recommendation":
+          combos.add("RECOMMENDATION|FAIL");
+          break;
+        case "potentialrecommendation":
+          combos.add("RECOMMENDATION|POTENTIAL");
+          break;
+        case "manual":
+          combos.add("VIOLATION|MANUAL");
+          combos.add("RECOMMENDATION|MANUAL");
+          break;
+        case "pass":
+          combos.add("VIOLATION|PASS");
+          combos.add("RECOMMENDATION|PASS");
+          break;
+        default:
+          console.warn(`Invalid report level: ${level}`);
+      }
+    }
+    // filter results by set membership
+    report.results = report.results.filter((result: Issue) => {
+      const key = `${result.value[0]}|${result.value[1]}`;
+      return combos.has(key);
+    });
+
     return report;
   } finally {
     pagePool.releasePage(page, scriptAdded);
@@ -134,22 +168,18 @@ export async function aceCheck(html: string, browser: puppeteer.Browser, guideli
 
 export async function runPerformanceTest(browser: puppeteer.Browser, iterations = 5): Promise<void> {
   const sampleHtml = `<!DOCTYPE html><html lang="en"><head><title>Test</title></head><body><h1>Heading</h1><img src="test.jpg" /></body></html>`;
-  
-  console.log(`Running ${iterations} iterations with page pooling...`);
-  
+
   if (!pagePool) {
     await initializePagePool(browser, 3);
   }
-  
+
   await aceCheck(sampleHtml, browser, ["WCAG_2_1"]);
-  
+
   const times = [];
   for (let i = 0; i < iterations; i++) {
     const start = Date.now();
     await aceCheck(sampleHtml, browser, ["WCAG_2_1"]);
     times.push(Date.now() - start);
   }
-  
-  console.log(`Average execution time: ${times.reduce((a, b) => a + b, 0) / times.length}ms`);
-  console.log(`Individual times: ${times.join(', ')}ms`);
+
 }

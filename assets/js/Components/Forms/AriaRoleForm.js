@@ -3,12 +3,10 @@ import * as Html from "../../Services/Html"
 
 export default function AriaRoleForm({
   t,
-  settings,
   activeIssue,
   handleIssueSave,
-  addMessage,
-  handleActiveIssue,
-  handleManualScan
+  isDisabled,
+  handleActiveIssue
  }) {
 
   const ariaRoleMap = {
@@ -216,7 +214,8 @@ export default function AriaRoleForm({
             className="w-100 mt-2"
             value={selectValue}
             onChange={(e) => handleSelect(e.target.value)}
-            disabled={deleteRole}>
+            tabindex="0"
+            disabled={isDisabled || deleteRole}>
             <option key='empty' id='opt-empty' value=''>
               {t('form.aria_role.label.none_selected')}
             </option>
@@ -232,12 +231,20 @@ export default function AriaRoleForm({
         <input type="checkbox"
           id="deleteRoleCheckbox"
           name="deleteRoleCheckbox"
+          tabindex="0"
+          disabled={isDisabled}
           checked={deleteRole}
           onChange={handleCheckbox} />
         <label htmlFor="deleteRoleCheckbox">{t('form.aria_role.label.remove')}</label>
       </div>
       <div className="flex-row justify-content-start mt-3 mb-3">
-        <button className="btn btn-primary" disabled={!deleteRole && selectValue === ''} onClick={handleSubmit}>{t('form.submit')}</button>
+        <button
+          className="btn btn-primary"
+          disabled={isDisabled || !deleteRole && selectValue === ''}
+          tabindex="0"
+          onClick={handleSubmit}>
+          {t('form.submit')}
+        </button>
       </div>
     </>
   )

@@ -2,13 +2,11 @@ import React, { useState, useEffect } from 'react'
 import * as Html from '../../Services/Html';
 
 export default function TableHeaders({
-  t, 
-  settings, 
+  t,
   activeIssue, 
   handleIssueSave, 
-  addMessage, 
-  handleActiveIssue, 
-  handleManualScan
+  isDisabled, 
+  handleActiveIssue,
 }) {
   const radioOptions = [
     'col',
@@ -18,9 +16,14 @@ export default function TableHeaders({
   const [selectedValue, setSelectedValue] = useState(null)
   const [description, setDescription] = useState('')
 
+  const NO_HEADER_RULES = [
+    'TableDataShouldHaveTableHeader',
+    'table_headers_exists'
+  ]
+
   useEffect(() => {
     setSelectedValue(getTableHeader())
-    if(activeIssue.scanRuleId === 'TableDataShouldHaveTableHeader') {
+    if(NO_HEADER_RULES.includes(activeIssue.scanRuleId)) {
       setDescription(t('form.table_headers.selection_description'))
     } else {
       setDescription(t('form.table_headers.selection_description_scope'))
@@ -139,13 +142,21 @@ export default function TableHeaders({
               id={value}
               name="tableHeaderSelect"
               value={selectedValue}
+              tabindex="0"
+              disabled={isDisabled}
               onChange={() => handleChange(value)} />
             <label htmlFor={value}>{t(`form.table_headers.${value}`)}</label>
           </div>
         ))}
       </div>
       <div className="flex-row justify-content-start mt-3 mb-3">
-        <button className="btn btn-primary" disabled={!selectedValue} onClick={handleSubmit}>{t('form.submit')}</button>
+        <button
+          className="btn btn-primary"
+          disabled={isDisabled || !selectedValue}
+          tabindex="0"
+          onClick={handleSubmit}>
+          {t('form.submit')}
+        </button>
       </div>
     </>
   )
