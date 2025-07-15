@@ -4,6 +4,7 @@ import * as Html from '../../Services/Html'
 
 export default function EmbeddedContentTitleForm({
   t,
+  settings,
   activeIssue,
   handleIssueSave,
   isDisabled,
@@ -88,7 +89,7 @@ export default function EmbeddedContentTitleForm({
   
   return (
     <>
-      <label htmlFor="labelInputValue">{t('form.embedded_content_title.label.text')}</label>
+      <label htmlFor="labelInputValue" className="instructions">{t('form.embedded_content_title.label.text')}</label>
       <div className="w-100 mt-2">
         <input
           type="text" 
@@ -100,16 +101,13 @@ export default function EmbeddedContentTitleForm({
           disabled={isDisabled}
           onChange={handleInput} />
       </div>
-      <FormFeedback issues={textInputErrors} />
-      <div className="flex-row justify-content-start mt-3 mb-3">
-        <button
-          className="btn btn-primary"
-          disabled={isDisabled || textInputErrors.length > 0}
-          tabindex="0"
-          onClick={handleSubmit}>
-          {t('form.submit')}
-        </button>
-      </div>
+      <FormFeedback
+        t={t}
+        settings={settings}
+        activeIssue={activeIssue}
+        isDisabled={isDisabled}
+        handleSubmit={handleSubmit}
+        formErrors={textInputErrors} />
     </>
   )
 }

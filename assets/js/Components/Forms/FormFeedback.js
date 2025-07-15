@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react'
-import SeverityIcon from '../Icons/SeverityIcon'
+
+import FixedIcon from '../Icons/FixedIcon'
 
 export default function FormFeedback({
-  issues
+  t,
+  handleSubmit = null,
+  activeIssue = null,
+  settings = null,
+  activeContentItem = null,
+  isDisabled = false,
+  formErrors = [],
 }) {
 
   const [formattedIssues, setFormattedIssues] = useState([])
+  const [hasErrors, setHasErrors] = useState(false)
 
   const issueTypeMap = {
     'error': 'ISSUE',
@@ -24,39 +32,70 @@ export default function FormFeedback({
 
   useEffect(() => {
     let tempIssues = []
-    issues.forEach((issue) => {
+    let tempHasErrors = false
+    formErrors.forEach((issue) => {
       if(issueTypeMap[issue.type]) {
         tempIssues.push({
           text: issue.text,
           type: issueTypeMap[issue.type]
         })
+        if(issueTypeMap[issue.type] === 'ISSUE') {
+          tempHasErrors = true
+        }
       }
       else {
         tempIssues.push({
           text: issue.text,
           type: 'ISSUE'
         })
+        tempHasErrors = true
       }
     })
     setFormattedIssues(tempIssues)
-  }, [issues])
+    setHasErrors(tempHasErrors)
+  }, [formErrors])
   
   return (
-    <>
-      { formattedIssues.length > 0 && (
-        <div className="flex-column mt-2">
-          {formattedIssues.map((issue, index) => (
-            <div className="flex-row justify-content-end gap-1" key={index}>
-              <div className="flex-column flex-center" alt="">
-                <SeverityIcon type={issue.type} className="icon-sm" />
-              </div>
-              <div className="flex-column flex-center">
-                <div className="error-text">{issue.text}</div>
+    <div className="flex-row justify-content-between gap-1 mt-4">
+      { !handleSubmit && activeContentItem?.url && (
+        <a href={activeContentItem.url} 
+           className="btn btn-secondary"
+           target="_blank"
+           rel="noopener noreferrer"
+           tabindex="0">
+          {t('fix.button.lms_solve')}
+        </a>
+      )}
+      <div className="flex-column justify-content-start flex-shrink-0">
+        { handleSubmit && (
+          <button
+            className="btn-primary"
+            disabled={isDisabled || hasErrors}
+            tabindex="0"
+            onClick={handleSubmit}>
+            {t('form.submit')}
+          </button>
+        )}
+      </div>
+      <div className="flex-column justify-content-start flex-grow-1 gap-1">
+        { (activeIssue.status === 1 || activeIssue.status === 3) && (
+            <div className="flex-row justify-content-start mt-1">
+              <div className="data-pill fixed flex-row">
+                <FixedIcon className="color-success icon-md flex-column align-self-center"/>
+                <div className="data-pill-text">{t('filter.label.resolution.fixed_single')}</div>
               </div>
             </div>
-          ))}
-        </div>
-      )}
-    </>
+          ) }
+        { formattedIssues.length > 0 && (
+          <>
+            {formattedIssues.map((issue, index) => (
+              <div className="flex-row justify-content-end gap-1" key={index}>
+                <div className="error-text text-end">{issue.text}</div>
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+    </div>
   )
 }

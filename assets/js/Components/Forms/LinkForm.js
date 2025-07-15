@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
+import FormFeedback from './FormFeedback'
 import * as Html from '../../Services/Html'
 
 export default function LinkForm({
   t,
+  settings,
   activeIssue,
   isDisabled,
   handleIssueSave,
@@ -112,13 +114,13 @@ export default function LinkForm({
           onChange={handleDeleteCheckbox} />
         <label for="deleteLinkCheckbox">{t('form.anchor.delete_link')}</label>
       </div>
-      <button
-        className="btn btn-primary"
-        onClick={handleSubmit}
-        tabindex="0"
-        disabled={isDisabled || textInputErrors.length > 0}>
-        {t('form.submit')}
-      </button>
+      <FormFeedback
+        t={t}
+        settings={settings}
+        activeIssue={activeIssue}
+        isDisabled={isDisabled}
+        handleSubmit={handleSubmit}
+        formErrors={textInputErrors} />
     </>
   ) 
 }

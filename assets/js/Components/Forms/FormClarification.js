@@ -28,6 +28,9 @@ export default function FormClarification({
         let quoteList = metadata.messageArgs.join(', ')
         messageArgs = { 'potentialQuotes': quoteList }
       }
+      if(activeIssue.scanRuleId === 'aria_role_valid') {
+        messageArgs = { 'tagName': metadata.messageArgs[1], 'ariaRole': metadata.messageArgs[0] }
+      }
     }
 
     const clarification = t(clarificationTag, messageArgs)
@@ -55,7 +58,7 @@ export default function FormClarification({
     <>
       { (clarification !== '') && (
         <div className="flex-grow-0">  
-          <div className="clarification-container flex-row mb-3 gap-2">
+          <div className="clarification-container flex-row mb-2 gap-2">
             <div className="flex-column justify-content-start">
               <InfoIcon className="icon-lg udoit-suggestion" alt="" />
             </div>

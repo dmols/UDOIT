@@ -4,6 +4,7 @@ import * as Html from '../../Services/Html'
 
 export default function LabelForm({
   t,
+  settings,
   activeIssue,
   handleIssueSave,
   isDisabled,
@@ -44,14 +45,8 @@ export default function LabelForm({
     let html = Html.getIssueHtml(activeIssue)
     let updatedElement = Html.toElement(html)
 
-    if (activeIssue.scanRuleId == 'media_alt_exists') {
-      updatedElement = Html.setAttribute(updatedElement, "aria-label", textInputValue)
-      updatedElement = Html.setAttribute(updatedElement, "label", textInputValue)
-    }
-    else {
-      updatedElement = Html.setAttribute(updatedElement, "aria-label", textInputValue)
-      updatedElement = Html.setAttribute(updatedElement, "title", textInputValue)
-    }
+    updatedElement = Html.setAttribute(updatedElement, "aria-label", textInputValue)
+    updatedElement = Html.setAttribute(updatedElement, "title", textInputValue)
     
     let issue = activeIssue
     issue.newHtml = Html.toString(updatedElement)
@@ -92,7 +87,7 @@ export default function LabelForm({
   
   return (
     <>
-      <label htmlFor="labelInputValue">{t('form.label.label.text')}</label>
+      <label htmlFor="labelInputValue" className="instructions">{t('form.label.label.text')}</label>
       <div className="w-100 mt-2">
         <input
           type="text" 
@@ -104,16 +99,13 @@ export default function LabelForm({
           tabindex="0"
           onChange={handleInput} />
       </div>
-      <FormFeedback issues={textInputErrors} />
-      <div className="flex-row justify-content-start mt-3 mb-3">
-        <button
-          className="btn btn-primary"
-          disabled={isDisabled || textInputErrors.length > 0}
-          tabindex="0"
-          onClick={handleSubmit}>
-          {t('form.submit')}
-        </button>
-      </div>
+      <FormFeedback
+        t={t}
+        settings={settings}
+        activeIssue={activeIssue}
+        isDisabled={isDisabled}
+        handleSubmit={handleSubmit}
+        formErrors={textInputErrors} />
     </>
   )
 }
