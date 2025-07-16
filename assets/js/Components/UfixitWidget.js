@@ -188,6 +188,7 @@ export default function UfixitWidget({
                       t={t}
                       settings={settings}
                       isDisabled={!isErrorFoundInContent}
+                      activeContentItem={activeContentItem}
                       activeIssue={tempActiveIssue.issueData}
                       handleIssueSave={handleIssueSave}
                       addMessage={addMessage}
