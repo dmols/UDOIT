@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import * as Html from "../../Services/Html";
 import FormFeedback from './FormFeedback';
 import './AriaRoleForm.css'
@@ -7,7 +7,9 @@ export default function AriaAttributeForm(
   {
     t,
     settings,
+    isDisabled,
     activeIssue,
+    activeContentItem,
     handleActiveIssue,
     handleIssueSave,
     addMessage,
@@ -40,19 +42,6 @@ export default function AriaAttributeForm(
   const [requiredAttributes, setRequiredAttributes] = useState([]);
   const [attributesArray, setAttributesArray] = useState([]);
   const [formComplete, setFormComplete] = useState();
-
-  let html = activeIssue.newHtml
-    ? activeIssue.newHtml
-    : activeIssue.sourceHtml;
-
-  if (activeIssue.status === "1") {
-    html = activeIssue.newHtml;
-  }
-  let element = Html.toElement(html);
-
-  const [textInputValue, setTextInputValue] = useState(
-    element ? Html.getAttribute(element, "role") : ""
-  );
 
   const checkMultivalueRole = () => {
     let tempErrors = [];
@@ -129,17 +118,12 @@ export default function AriaAttributeForm(
   }, [attributesArray]);
 
   useEffect(() => {
-    let html = activeIssue.newHtml
-      ? activeIssue.newHtml
-      : activeIssue.sourceHtml;
-    if (activeIssue.status === 1) {
-      html = activeIssue.newHtml;
-    }
+
+    const html = Html.getIssueHtml(activeIssue)
 
     setFormComplete(false);
 
     let element = Html.toElement(html);
-    setTextInputValue(element ? Html.getAttribute(element, "role") : "");
 
     const match = Html.getAttribute(element, "role");
     console.log(match)
@@ -176,13 +160,16 @@ export default function AriaAttributeForm(
 
   const handleInput = (e, attribute) => {
     console.log(e)
+    let html = Html.getIssueHtml(activeIssue)
     let element = Html.toElement(html);
 
     let tempAttributesArray = {...attributesArray};
     tempAttributesArray[attribute] = e.target.value;
     setAttributesArray(tempAttributesArray);
 
-    element.setAttribute(attribute, e.target.value);
+    for(const [key, value] of Object.entries(tempAttributesArray)) {
+      element.setAttribute(key, value)
+    }
     handleHtmlUpdate(element);
   };
 
@@ -199,22 +186,22 @@ export default function AriaAttributeForm(
         </ul>
         {requiredAttributes.map((opt, index) => (
           <>
-          <label for="attribute"> {opt}:</label>
+          <label for={`attribute` + index}> {opt}:</label>
           <div className="w-100 mt-2">
             <input
-              id="attribute"
+              id={`attribute` + index}
               style={{ marginLeft: '15px', marginBottom: '10px', width: '200px' }}
-              name="attribute"
+              name={`attribute` + index}
               key={index}
               type="text"
               rule={opt}
-              defaultValue={element.getAttribute(opt) || ""}
+              defaultValue={attributesArray[opt] || ""}
               onChange={(e) => { handleInput(e, opt); } }
             />
             </div>
           </>
         ))}
-        <FormFeedback issues={formErrors} />
+        <FormFeedback t={t} activeIssue={activeIssue} settings={settings} activeContentItem={activeContentItem} isDisabled={isDisabled || !formComplete} formErrors={formErrors} />
       <div className="flex-row justify-content-start mt-3 mb-3">
         <button className="btn btn-primary" disabled={!formComplete || formErrors.length > 0} onClick={handleSubmit}>{t('form.submit')}</button>
       </div>
