@@ -3,6 +3,7 @@ name: Build UDOIT 3 Docker Image
 on:
   push:
     branches:
+      - fixing-github-actions
       - main
       - 'stable/*'
 
