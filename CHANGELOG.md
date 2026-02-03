@@ -4,10 +4,13 @@ Please update this file as you open PRs and make changes to the codebase. Thank 
 ## [Unreleased](https://github.com/ucfopen/UDOIT/tree/dev)
 
 ## [4.0] -- In Progress
-
+- Added Sensory Misuse form to handle `text_sensory_misuse` error, listed [here](https://www.ibm.com/able/requirements/checker-rule-sets/). Changes can be seen in [this commit](https://github.com/ucfopen/UDOIT/commit/57f757cf2123bce45d7f4e183b28f5424bb12490). (Thank you, [@panbed](https://github.com/panbed) [@mbusch3](https://github.com/mbusch3) )
+- Major UI changes to each section of the tool, as well as the individual forms (Thank you [@mbusch3](https://github.com/mbusch3), ) <--- write up the rest of contributors ----->
+- Updated Node version to 20.19.0 from 16.19.0 and removed unused dependencies. Changes seen in [#1040](https://github.com/ucfopen/UDOIT/pull/1040). (Thank you [@mbusch3](https://github.com/mbusch3)).
+- Visual changes to the editor + update to React 19.1.0. Changes seen [here](https://github.com/ucfopen/UDOIT/commit/e716b4f8ff8f3ff5822c16cebe2ecd4db8df7e3c). (Thank you [@mbusch3](https://github.com/mbusch3) and [@panbed](https://github.com/panbed)).
 - Upgraded the React version from 16.14.0 to 18.3.1, as well as updating a lot of the React code from class-based components to functional. Changes seen in [#984](https://github.com/ucfopen/UDOIT/pull/984) (Thank you [@mbusch3](https://github.com/mbusch3) and [@nizolnier](https://github.com/nizolnier)).
-- Updated UDOIT's PHP version from 8.2 to 8.4 to avoid issues pulling the latest composer image, as well as work with a php version that has active support. (Thank you, [@dmols](https://github.com/dmols) and [@panbed](https://github.com/panbed))
-- Integrated IBM Equal Access scanner to act as the new default UDOIT scanner (replacing PHPAlly) while still allowing developers to choose between the two. Changes seen in [#982](https://github.com/ucfopen/UDOIT/pull/982) (Thank you, [@panbed](https://github.com/panbed) and [@evannaderi](https://github.com/evannaderi))
+- Updated UDOIT's PHP version from 8.2 to 8.4 to avoid issues pulling the latest composer image, as well as work with a php version that has active support. (Thank you [@dmols](https://github.com/dmols) and [@panbed](https://github.com/panbed))
+- Integrated IBM Equal Access scanner to act as the new default UDOIT scanner (replacing PHPAlly) while still allowing developers to choose between the two. Changes seen in [#982](https://github.com/ucfopen/UDOIT/pull/982) (Thank you [@panbed](https://github.com/panbed) and [@evannaderi](https://github.com/evannaderi))
 
 ## [3.5.0](https://github.com/ucfopen/UDOIT/compare/3.4.0...3.5.0) - 2024-11-12
 
