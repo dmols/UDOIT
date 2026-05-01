@@ -2,13 +2,15 @@ FROM php:8.5-fpm
 
 RUN apt-get update -y \
     && apt-get install -y nginx git unzip \
-    libpng-dev zlib1g-dev libfreetype6-dev libjpeg-dev libwebp-dev
+    libpng-dev zlib1g-dev libfreetype6-dev libjpeg-dev libwebp-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # PHP_CPPFLAGS are used by the docker-php-ext-* scripts
 ENV PHP_CPPFLAGS="$PHP_CPPFLAGS -std=c++17"
 
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install pdo_mysql gd opcache \
+RUN docker-php-ext-install pdo_mysql opcache \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install gd \
     && apt-get install libicu-dev -y \
     && docker-php-ext-configure intl \
     && docker-php-ext-install intl \
@@ -22,7 +24,7 @@ RUN { \
         echo 'opcache.revalidate_freq=2'; \
         echo 'opcache.fast_shutdown=1'; \
         echo 'opcache.enable_cli=1'; \
-    } > /usr/local/etc/php/conf.d/php-opocache-cfg.ini
+    } > /usr/local/etc/php/conf.d/php-opcache-cfg.ini
 
 # Copy custom PHP ini file that overrides defaults
 COPY ./build/nginx/php-custom.ini /usr/local/etc/php/conf.d/php-custom.ini
